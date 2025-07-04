@@ -1,0 +1,80 @@
+// database\migrations\2024_03_27_000001_create_users_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('users', function (Blueprint $table) { $table->id(); $table->string('name'); $table->string('email')->unique(); $table->string('username')->unique()->nullable(); $table->timestamp('email_verified_at')->nullable(); $table->string('password'); $table->enum('role', ['mahasiswa', 'dosen', 'tendik', 'alumni', 'pengguna_lulusan', 'mitra', 'admin', 'pimpinan'])->default('mahasiswa'); $table->string('profile_photo')->nullable(); $table->string('nim')->nullable()->unique(); $table->string('nip')->nullable()->unique(); $table->string('nik')->nullable()->unique(); $table->string('program_studi')->nullable(); $table->string('tahun_lulus')->nullable(); $table->string('nama_instansi')->nullable(); $table->string('jabatan')->nullable(); $table->string('no_telepon')->nullable(); $table->boolean('is_active')->default(true); $table->rememberToken(); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('users'); } };
+
+// database\migrations\2024_03_27_000002_create_academic_periods_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('academic_periods', function (Blueprint $table) { $table->id(); $table->string('name'); $table->string('semester'); $table->string('year'); $table->date('start_date'); $table->date('end_date'); $table->boolean('is_active')->default(false); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('academic_periods'); } };
+
+// database\migrations\2024_03_27_000003_create_questionnaire_categories_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('questionnaire_categories', function (Blueprint $table) { $table->id(); $table->string('name'); $table->string('description')->nullable(); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('questionnaire_categories'); } };
+
+// database\migrations\2024_03_27_000004_create_questionnaires_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('questionnaires', function (Blueprint $table) { $table->id(); $table->string('title'); $table->string('slug')->unique(); $table->text('description')->nullable(); $table->enum('type', ['layanan_fakultas', 'elom', 'evaluasi_dosen', 'elta', 'kepuasan_dosen', 'kepuasan_tendik', 'kepuasan_alumni', 'kepuasan_pengguna_lulusan', 'kepuasan_mitra']); $table->foreignId('academic_period_id')->constrained()->onDelete('cascade'); $table->date('start_date'); $table->date('end_date'); $table->boolean('is_active')->default(false); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('questionnaires'); } };
+
+// database\migrations\2024_03_27_000005_create_questions_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('questions', function (Blueprint $table) { $table->id(); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->foreignId('category_id')->constrained('questionnaire_categories')->onDelete('cascade'); $table->text('question'); $table->integer('order')->default(0); $table->boolean('is_required')->default(true); $table->boolean('is_active')->default(true); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('questions'); } };
+
+// database\migrations\2024_03_27_000006_create_questionnaire_user_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('questionnaire_user', function (Blueprint $table) { $table->id(); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->foreignId('user_id')->constrained()->onDelete('cascade'); $table->timestamp('submitted_at')->nullable(); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('questionnaire_user'); } };
+
+// database\migrations\2024_03_27_000007_create_responses_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('responses', function (Blueprint $table) { $table->id(); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->foreignId('question_id')->constrained()->onDelete('cascade'); $table->foreignId('user_id')->constrained()->onDelete('cascade'); $table->integer('rating'); $table->text('comment')->nullable(); $table->timestamps(); $table->unique(['questionnaire_id', 'question_id', 'user_id']); }); } public function down(): void { Schema::dropIfExists('responses'); } };
+
+// database\migrations\2024_03_27_000008_create_questionnaire_permissions_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('questionnaire_permissions', function (Blueprint $table) { $table->id(); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->enum('role', ['mahasiswa', 'dosen', 'tendik', 'alumni', 'pengguna_lulusan', 'mitra', 'admin', 'pimpinan']); $table->boolean('can_fill')->default(true); $table->boolean('can_view_results')->default(false); $table->timestamps(); $table->unique(['questionnaire_id', 'role']); }); } public function down(): void { Schema::dropIfExists('questionnaire_permissions'); } };
+
+// database\migrations\2024_03_27_000009_create_suggestions_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('suggestions', function (Blueprint $table) { $table->id(); $table->foreignId('user_id')->constrained()->onDelete('cascade'); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->text('content'); $table->enum('status', ['submitted', 'reviewed', 'implemented'])->default('submitted'); $table->text('admin_notes')->nullable(); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('suggestions'); } };
+
+// database\migrations\2024_03_27_000010_create_reports_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('reports', function (Blueprint $table) { $table->id(); $table->foreignId('academic_period_id')->constrained()->onDelete('cascade'); $table->foreignId('questionnaire_id')->constrained()->onDelete('cascade'); $table->json('summary_data'); $table->text('notes')->nullable(); $table->foreignId('generated_by')->constrained('users')->onDelete('cascade'); $table->timestamp('generated_at'); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('reports'); } };
+
+// database\migrations\2025_03_27_044000_create_personal_access_tokens_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('personal_access_tokens', function (Blueprint $table) { $table->id(); $table->morphs('tokenable'); $table->string('name'); $table->string('token', 64)->unique(); $table->text('abilities')->nullable(); $table->timestamp('last_used_at')->nullable(); $table->timestamp('expires_at')->nullable(); $table->timestamps(); }); } public function down(): void { Schema::dropIfExists('personal_access_tokens'); } };
+
+// database\migrations\2025_03_27_044423_create_sessions_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('sessions', function (Blueprint $table) { $table->string('id')->primary(); $table->foreignId('user_id')->nullable()->index(); $table->string('ip_address', 45)->nullable(); $table->text('user_agent')->nullable(); $table->longText('payload'); $table->integer('last_activity')->index(); }); } public function down(): void { Schema::dropIfExists('sessions'); } };
+
+// database\migrations\2025_03_27_142837_create_cache_table.php
+<?php use Illuminate\Database\Migrations\Migration; use Illuminate\Database\Schema\Blueprint; use Illuminate\Support\Facades\Schema; return new class extends Migration { public function up(): void { Schema::create('cache', function (Blueprint $table) { $table->string('key')->primary(); $table->mediumText('value'); $table->integer('expiration'); }); Schema::create('cache_locks', function (Blueprint $table) { $table->string('key')->primary(); $table->string('owner'); $table->integer('expiration'); }); } public function down(): void { Schema::dropIfExists('cache'); Schema::dropIfExists('cache_locks'); } };
+
+// database\migrations\2025_04_08_084234_add_meta_fields_to_users_table.php
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    // Isi file migrasi dengan:
+    public function up()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('meta_nama_alumni')->nullable();
+            $table->string('meta_tahun_lulus_alumni')->nullable();
+            $table->string('meta_program_studi_alumni')->nullable();
+            $table->string('meta_jenis_mitra')->nullable();
+            $table->string('meta_jenis_kerjasama')->nullable();
+            $table->string('meta_lingkup_kerjasama')->nullable();
+            $table->string('meta_periode_kerjasama')->nullable();
+            $table->text('meta_alamat')->nullable();
+        });
+    }
+
+    public function down()
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn([
+                'meta_nama_alumni',
+                'meta_tahun_lulus_alumni',
+                'meta_program_studi_alumni',
+                'meta_jenis_mitra',
+                'meta_jenis_kerjasama',
+                'meta_lingkup_kerjasama',
+                'meta_periode_kerjasama',
+                'meta_alamat',
+            ]);
+        });
+    }
+};
+
