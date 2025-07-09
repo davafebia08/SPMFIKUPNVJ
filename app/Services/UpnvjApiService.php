@@ -11,7 +11,6 @@ class UpnvjApiService
     protected $apiUrl;
     protected $apiUsername;
     protected $apiPassword;
-    protected $apiKeyName;
     protected $apiKeySecret;
 
     public function __construct()
@@ -19,7 +18,6 @@ class UpnvjApiService
         $this->apiUrl = env('API_URL', 'https://api.upnvj.ac.id/data/auth_mahasiswa');
         $this->apiUsername = env('API_USERNAME', 'uakademik');
         $this->apiPassword = env('API_PASSWORD', 'VTUzcjRrNGRlbTFrMjAyNCYh');
-        $this->apiKeyName = env('API_KEY_NAME', 'X-UPNVJ-API-KEY');
         $this->apiKeySecret = env('API_KEY_SECRET', 'Cspwwxq5SyTOMkq8XYcwZ1PMpYrYCwrv');
     }
 
@@ -30,8 +28,9 @@ class UpnvjApiService
             $response = Http::asForm()
                 ->withBasicAuth($this->apiUsername, $this->apiPassword)
                 ->withHeaders([
-                    'API_KEY_NAME' => $this->apiKeyName,
-                    'API_KEY_SECRET' => $this->apiKeySecret,
+                    'Accept' => '*/*',
+                    'User-Agent' => 'Thunder Client (https://www.thunderclient.com)',
+                    'X-UPNVJ-API-KEY' => $this->apiKeySecret,
                 ])
                 ->post($this->apiUrl, [
                     'username' => $nim,

@@ -82,56 +82,56 @@ class QuestionnaireImportController extends Controller
             // Tambahkan di method import() setelah validasi header
             // Letakkan setelah baris: if ($actualColumns < $expectedColumns) { ... }
 
-            \Log::info('=== DEBUG IMPORT START ===');
-            \Log::info('Questionnaire Type: ' . $questionnaire->type);
-            \Log::info('Expected Columns: ' . $expectedColumns);
-            \Log::info('Actual Columns: ' . $actualColumns);
-            \Log::info('Header: ' . json_encode($header));
+            //\Log::info('=== DEBUG IMPORT START ===');
+            //\Log::info('Questionnaire Type: ' . $questionnaire->type);
+            //\Log::info('Expected Columns: ' . $expectedColumns);
+            //\Log::info('Actual Columns: ' . $actualColumns);
+            //\Log::info('Header: ' . json_encode($header));
 
             $imported = 0;
             $errors = [];
 
             foreach ($rows as $index => $row) {
                 try {
-                    \Log::info("Processing Row " . ($index + 2) . ": " . json_encode($row));
+                    //\Log::info("Processing Row " . ($index + 2) . ": " . json_encode($row));
 
                     if (empty(array_filter($row))) {
-                        \Log::info("Row " . ($index + 2) . " is empty, skipping");
+                        //\Log::info("Row " . ($index + 2) . " is empty, skipping");
                         continue;
                     }
 
                     $userData = $this->processRowByType($questionnaire->type, $row, $index);
-                    \Log::info("User Data Row " . ($index + 2) . ": " . json_encode($userData));
+                    //\Log::info("User Data Row " . ($index + 2) . ": " . json_encode($userData));
 
                     if (!$userData) {
-                        \Log::info("Row " . ($index + 2) . " userData is null, skipping");
+                        //\Log::info("Row " . ($index + 2) . " userData is null, skipping");
                         continue;
                     }
 
                     $user = $this->findExistingUser($userData);
-                    \Log::info("User found/created for Row " . ($index + 2) . ": " . ($user ? $user->id : 'NEW'));
+                    //\Log::info("User found/created for Row " . ($index + 2) . ": " . ($user ? $user->id : 'NEW'));
 
                     if (!$user) {
                         $userData['username'] = $this->generateUniqueUsername($userData['email']);
                         $userData['password'] = bcrypt('password');
                         $userData['is_active'] = true;
                         $user = User::create($userData);
-                        \Log::info("New User Created Row " . ($index + 2) . ": " . $user->id);
+                        //\Log::info("New User Created Row " . ($index + 2) . ": " . $user->id);
                     }
 
                     $responseStartColumn = $this->getResponseStartColumn($questionnaire->type);
-                    \Log::info("Response Start Column for Row " . ($index + 2) . ": " . $responseStartColumn);
+                    //\Log::info("Response Start Column for Row " . ($index + 2) . ": " . $responseStartColumn);
 
                     $this->processResponses($questionnaire, $questions, $user, $row, $responseStartColumn);
-                    \Log::info("Responses processed for Row " . ($index + 2));
+                    //\Log::info("Responses processed for Row " . ($index + 2));
 
                     // Processing suggestions
                     if ($questionnaire->type === 'kepuasan_mitra') {
                         $this->processMitraSuggestions($questionnaire, $user, $row, $questions->count());
-                        \Log::info("Mitra suggestions processed for Row " . ($index + 2));
+                        //\Log::info("Mitra suggestions processed for Row " . ($index + 2));
                     } elseif ($questionnaire->type === 'kepuasan_pengguna_lulusan') {
                         $this->processPenggunaLulusanSuggestions($questionnaire, $user, $row, $questions->count());
-                        \Log::info("Pengguna Lulusan suggestions processed for Row " . ($index + 2));
+                        //\Log::info("Pengguna Lulusan suggestions processed for Row " . ($index + 2));
                     }
 
                     if (!$questionnaire->users()->where('user_id', $user->id)->exists()) {
@@ -140,32 +140,32 @@ class QuestionnaireImportController extends Controller
                             'created_at' => now(),
                             'updated_at' => now()
                         ]);
-                        \Log::info("User attached to questionnaire for Row " . ($index + 2));
+                        //\Log::info("User attached to questionnaire for Row " . ($index + 2));
                     }
 
                     $imported++;
-                    \Log::info("Row " . ($index + 2) . " imported successfully");
+                    //\Log::info("Row " . ($index + 2) . " imported successfully");
                 } catch (\Exception $e) {
                     $error = "Baris " . ($index + 2) . ": " . $e->getMessage();
                     $errors[] = $error;
 
                     // LOG ERROR DETAIL
-                    \Log::error('=== IMPORT ERROR ===');
-                    \Log::error('Row: ' . ($index + 2));
-                    \Log::error('Data: ' . json_encode($row));
-                    \Log::error('Error Message: ' . $e->getMessage());
-                    \Log::error('Error File: ' . $e->getFile());
-                    \Log::error('Error Line: ' . $e->getLine());
-                    \Log::error('Stack Trace: ' . $e->getTraceAsString());
-                    \Log::error('=== END ERROR ===');
+                    //\Log::error('=== IMPORT ERROR ===');
+                    //\Log::error('Row: ' . ($index + 2));
+                    //\Log::error('Data: ' . json_encode($row));
+                    //\Log::error('Error Message: ' . $e->getMessage());
+                    //\Log::error('Error File: ' . $e->getFile());
+                    //\Log::error('Error Line: ' . $e->getLine());
+                    //\Log::error('Stack Trace: ' . $e->getTraceAsString());
+                    //\Log::error('=== END ERROR ===');
                 }
             }
 
-            \Log::info('=== DEBUG IMPORT END ===');
-            \Log::info('Total Imported: ' . $imported);
-            \Log::info('Total Errors: ' . count($errors));
+            //\Log::info('=== DEBUG IMPORT END ===');
+            //\Log::info('Total Imported: ' . $imported);
+            //\Log::info('Total Errors: ' . count($errors));
             if (!empty($errors)) {
-                \Log::info('Error List: ' . json_encode($errors));
+                //\Log::info('Error List: ' . json_encode($errors));
             }
 
             $imported = 0;
